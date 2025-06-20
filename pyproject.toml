@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "skypro-tony-coursework4-django"
+version = "0.1.0"
+description = ""
+authors = ["Tony <toshik06rom@rambler.ru>"]
+readme = "README.md"
+packages = [{include = "skypro"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.3"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
+django = "^5.2"
+pillow = "^11.2.1"
+ipython = "^9.2.0"
+redis = "^6.2.0"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^7.2.0"
+black = "^25.1.0"
+mypy = "^1.15.0"
+isort = "^6.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-cov = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_return_any = true
+exclude = ['venv', '.venv', '.env', 'tests', 'main.py', 'trash', 'moduls_test']
+
+[tool.black]
+# Максимальная длина строки
+line-length = 119
+# Файлы, которые не нужно форматировать
+exclude = '''
+(
+  /(
+      \.eggs         # Исключить несколько общих каталогов
+    | \.git          # в корне проекта
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | dist
+    | \trash
+  )/
+  | foo.py           # Также отдельно исключить файл с именем foo.py
+                     # в корне проекта
+)
+'''
+
+[tool.isort]
+# максимальная длина строки
+line_length = 119

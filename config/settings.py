@@ -40,9 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "***",
-    "****",
-    "*****",
+    "newsletter",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -129,11 +128,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "data/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "data/media")
 
-AUTH_USER_MODEL = "***.*****"
-
-LOGIN_URL = "***:*****"
-LOGIN_REDIRECT_URL = "/***/*****/"
-LOGOUT_REDIRECT_URL = "/***/*****/"
+# AUTH_USER_MODEL = "***.*****"
+#
+# LOGIN_URL = "***:*****"
+# LOGIN_REDIRECT_URL = "/***/*****/"
+# LOGOUT_REDIRECT_URL = "/***/*****/"
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -144,14 +143,14 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
-SERVER_EMAIL = EMAIL_HOST_USER
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-CACHE_ENABLED = True
-if CACHE_ENABLED:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': 'redis://127.0.0.1:6379/1',
-        }
-    }
+# SERVER_EMAIL = EMAIL_HOST_USER
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+#
+# CACHE_ENABLED = True
+# if CACHE_ENABLED:
+#     CACHES = {
+#         'default': {
+#             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#             'LOCATION': 'redis://127.0.0.1:6379/1',
+#         }
+#     }

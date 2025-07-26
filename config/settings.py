@@ -128,7 +128,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "data/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "data/media")
 
-# AUTH_USER_MODEL = "***.*****"
+AUTH_USER_MODEL = "users.User"
 #
 # LOGIN_URL = "***:*****"
 # LOGIN_REDIRECT_URL = "/***/*****/"
@@ -143,8 +143,8 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASS")
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
-# SERVER_EMAIL = EMAIL_HOST_USER
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 #
 # CACHE_ENABLED = True
 # if CACHE_ENABLED:

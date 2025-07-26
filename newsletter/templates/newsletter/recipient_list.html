@@ -1,0 +1,14 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}Получатели рассылки{% endblock %}
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="col-lg-6 col-md-8 mx-auto"><h1 class="fw-light">Получатели рассылок</h1></div>
+</section>
+<section class="py-5 text-center container">
+  <div class="list-group">
+    {% for recipient_detail in recipient_list %}
+    <a href="{% url 'newsletter:recipient_detail' recipient_detail.pk %}" class="list-group-item list-group-item-action">{{ recipient_detail }} ({{ recipient_detail.comment }})</a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

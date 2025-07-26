@@ -6,7 +6,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("newsletter/", include("newsletter.urls", namespace="newsletter")),
+    # path("users/", include("users.urls", namespace="users")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-# path("***/", include("****.urls", namespace="***")),
-# path("****/", include("****.urls", namespace="****")),
-# path("*****/", include("*****.urls", namespace="*****")),

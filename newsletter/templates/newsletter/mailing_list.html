@@ -1,0 +1,20 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}Список рассылок{% endblock %}
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="col-lg-6 col-md-8 mx-auto"><h1 class="fw-light">Доступные рассылки</h1></div>
+</section>
+
+<section class="py-5 text-center container">
+  <div class="list-group">
+    {% for mailing_detail in mailing_list %}
+    <a href="{% url 'newsletter:mailing_detail' mailing_detail.pk %}" class="list-group-item list-group-item-action">Сообщение: {{ mailing_detail.message }} | Статус: {{ mailing_detail.status }} | {% if mailing_detail.is_active %}Активна{% else %}Отключена{% endif %} | Автор: {{ mailing_detail.user.username }}
+      <form method="post" action="{% url 'newsletter:send_mail' mailing_detail.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary">Запустить рассылку</button>
+        </form>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

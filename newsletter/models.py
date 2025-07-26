@@ -1,4 +1,9 @@
+import os
+
+from django.core.mail import send_mail
 from django.db import models
+
+from users.models import User
 
 
 class Recipient(models.Model):
@@ -29,7 +34,10 @@ class Message(models.Model):
 
 
 class MailingList(models.Model):
-    STATUS_CHOICES = [("created", "Создана"),("started", "Запущена"),("completed", "Завершена")]
+    CREATED = 'created'
+    STARTED = 'started'
+    COMPLETED = 'completed'
+    STATUS_CHOICES = [(CREATED, "Создана"),(STARTED, "Запущена"),(COMPLETED, "Завершена")]
 
     date_first_sent = models.DateTimeField(auto_now_add=True, verbose_name="Дата первой отправки")
     date_last_sent = models.DateTimeField(auto_now=True, verbose_name="Дата последней отправки", )
@@ -44,6 +52,20 @@ class MailingList(models.Model):
         verbose_name = "Рассылка"
         verbose_name_plural = "Рассылки"
         ordering = ["status"]
+
+    def send(self):
+        self.status = "started"
+        self.save()
+        subject = self.message.title
+        message = self.message.body
+        from_email = os.getenv("EMAIL_HOST_USER")
+        recipient_list = [r.email for r in self.recipients.all()]
+
+        success_count = send_mail(subject, message, from_email, recipient_list, fail_silently=False,)
+        self.status = "completed"
+        self.save()
+        SendAttempt.objects.create(mailing_list=self, status="Успешно", response="Письма успешно отправлены")
+        return success_count
 
 
 class SendAttempt(models.Model):

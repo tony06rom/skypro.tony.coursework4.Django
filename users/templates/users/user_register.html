@@ -13,7 +13,7 @@
               <h4 class="my-0 font-weight-normal">Введите ваши данные</h4>
           </div>
           <div class="card-body">
-              <form method="post" action="" enctype="multipart/form-data">
+              <form method="post" action="{% url 'users:user_register' %}" enctype="multipart/form-data">
                   {% csrf_token %}
                   {{ form.as_p }}
                   <button type="submit" class="btn btn-lg btn-block btn-outline-primary">Зарегистрироваться</button>

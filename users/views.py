@@ -9,6 +9,7 @@ from config.settings import EMAIL_HOST_USER
 from users.forms import UserRegisterForm
 from users.models import User
 
+
 class UserRegisterView(CreateView):
     model = User
     template_name = "users/user_register.html"
@@ -16,7 +17,7 @@ class UserRegisterView(CreateView):
     success_url = reverse_lazy("users:user_login")
 
     def form_valid(self, form):
-        user = form.save()
+        user = form.save(commit=False)
         user.is_active = False
         token = secrets.token_hex(16)
         user.token = token

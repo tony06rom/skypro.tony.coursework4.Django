@@ -31,6 +31,7 @@ class User(AbstractUser):
     )
     last_login = models.DateTimeField(auto_now=True, blank=True, null=True, help_text="Последний вход")
     is_active = models.BooleanField(default=True, blank=True, null=True, help_text="Статус УЗ")
+    token = models.CharField(max_length=100, verbose_name="Токен", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name", "phone_number", "city"]

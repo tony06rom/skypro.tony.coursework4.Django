@@ -129,10 +129,10 @@ MEDIA_URL = "data/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "data/media")
 
 AUTH_USER_MODEL = "users.User"
-#
-# LOGIN_URL = "***:*****"
-# LOGIN_REDIRECT_URL = "/***/*****/"
-# LOGOUT_REDIRECT_URL = "/***/*****/"
+
+LOGIN_URL = "users:user_register"
+LOGIN_REDIRECT_URL = "/newsletter/home_page"
+LOGOUT_REDIRECT_URL = "/newsletter/home_page"
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

@@ -1,5 +1,9 @@
 import secrets
 
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
+    PasswordResetCompleteView
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -41,3 +45,32 @@ def email_verification(request, token):
     user.is_active = True
     user.save()
     return redirect(reverse("users:user_login"))
+
+
+class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    form_class = PasswordResetForm
+    success_url = reverse_lazy('users:password_reset_done')
+    success_message = "Письмо для сброса пароля отправлено на ваш email"
+
+    def form_valid(self, form):
+        if not User.objects.filter(email=form.cleaned_data['email']).exists():
+            form.add_error('email', 'Пользователя с таким email не существует в системе')
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'users/password_reset_done.html'
+
+
+class CustomPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
+    template_name = 'users/password_reset_confirm.html'
+    form_class = SetPasswordForm
+    success_url = reverse_lazy('users:password_reset_complete')
+    success_message = "Пароль успешно изменен. Авторизуйтесь с новым паролем."
+
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'users/password_reset_complete.html'

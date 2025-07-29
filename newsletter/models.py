@@ -58,18 +58,24 @@ class MailingList(models.Model):
         ordering = ["status"]
 
     def send(self):
-        self.status = "started"
+        self.status = self.STARTED
         self.save()
         subject = self.message.title
         message = self.message.body
         from_email = os.getenv("EMAIL_HOST_USER")
         recipient_list = [r.email for r in self.recipients.all()]
 
-        success_count = send_mail(subject, message, from_email, recipient_list, fail_silently=False,)
-        self.status = "completed"
-        self.save()
-        SendAttempt.objects.create(mailing_list=self, status="Успешно", response="Письма успешно отправлены")
-        return success_count
+        try:
+            success_count = send_mail(subject, message, from_email, recipient_list, fail_silently=False,)
+            self.status = self.COMPLETED
+            self.save()
+            SendAttempt.objects.create(mailing_list=self, status=SendAttempt.SUCCESS, response="Письма успешно отправлены", owner=self.owner)
+            return success_count
+        except Exception as e:
+            SendAttempt.objects.create(mailing_list=self, status=SendAttempt.FAILURE, response=str(e), owner=self.owner)
+            self.status = self.COMPLETED
+            self.save()
+            return 0
 
 
 class SendAttempt(models.Model):
@@ -81,6 +87,7 @@ class SendAttempt(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, verbose_name="Статус")
     response = models.TextField(blank=True, verbose_name="Ответ почтового сервера")
     mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE, verbose_name="Рассылка")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name='Владелец', related_name='attempt_owner')
 
     def __str__(self):
         return f"{self.date} | id:{self.mailing_list.pk} | {self.status} | {self.response}"

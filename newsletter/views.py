@@ -1,9 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, DetailView
-from newsletter.models import Recipient, MailingList
+from django.views.generic import ListView, DetailView, TemplateView
+from newsletter.models import Recipient, MailingList, SendAttempt
+from newsletter.services import Statistic
 
 
 class HomeView(ListView):
@@ -11,7 +13,7 @@ class HomeView(ListView):
     template_name = "newsletter/home_page.html"
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        active_mailing_lists = MailingList.objects.filter(status="started")
+        active_mailing_lists = MailingList.objects.filter(status=MailingList.STARTED)
         mailing_lists = MailingList.objects.all()
         unique_recipients = Recipient.objects.all()
         context = {"mailing_list": mailing_lists.count(),"active_mailing_list": active_mailing_lists.count(),"unique_recipient": unique_recipients.count()}
@@ -64,3 +66,15 @@ class MailSend(View):
         mailing_list = get_object_or_404(MailingList, id=self.kwargs["pk"])
         mailing_list.send()
         return redirect(self.success_url)
+
+
+class StatisticView(LoginRequiredMixin, TemplateView):
+    template_name = 'newsletter/statistic.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        stats = Statistic.get_statistic(self.request.user)
+
+        # Просто передаем всю статистику в контекст
+        context.update(stats)
+        return context

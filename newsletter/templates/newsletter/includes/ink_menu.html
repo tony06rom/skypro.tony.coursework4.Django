@@ -8,6 +8,7 @@
                     <li><a href="{% url 'newsletter:home_page' %}" class="text-white">Главная</a></li>
                     <li><a href="{% url 'newsletter:recipient_list' %}" class="text-white">Список получателей</a></li>
                     <li><a href="{% url 'newsletter:mailing_list' %}" class="text-white">Рассылки</a></li>
+                    <li><a href="{% url 'newsletter:statistic' %}" class="text-white">Статистика</a></li>
                     {% if user.is_authenticated %}
                     <li style="margin: 0px 20;">
                         <form action="{% url 'users:user_logout' %}" method="post" style="display: inline;">

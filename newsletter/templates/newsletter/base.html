@@ -1,9 +1,11 @@
 {% load static %}
+{% load cache %}
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="auto">
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="max-age=300, must-revalidate">
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/album/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="{% static 'js/color-modes.js' %}"></script>

@@ -3,7 +3,9 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView, DeleteView
 
 from newsletter.forms import RecipientForm, MailingListForm
@@ -11,6 +13,7 @@ from newsletter.models import Recipient, MailingList, SendAttempt, Message
 from newsletter.services import Statistic
 
 
+@method_decorator(cache_page(60*5), name='dispatch')
 class HomeView(ListView):
     model = MailingList
     template_name = "newsletter/home_page.html"
@@ -23,6 +26,7 @@ class HomeView(ListView):
         return context
 
 
+@method_decorator(cache_page(60*5), name='dispatch')
 class RecipientListView(ListView):
     model = Recipient
     template_name = "newsletter/recipient_list.html"
@@ -34,6 +38,7 @@ class RecipientListView(ListView):
         return Recipient.objects.filter(owner=self.request.user)
 
 
+@method_decorator(cache_page(60*5), name='dispatch')
 class RecipientDetailView(DetailView):
     model = Recipient
     template_name = "newsletter/recipient_detail.html"
@@ -84,6 +89,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         return Recipient.objects.filter(owner=self.request.user)
 
 
+@method_decorator(cache_page(60*5), name='dispatch')
 class MailingListView(ListView):
     model = MailingList
     template_name = "newsletter/mailing_list.html"
@@ -94,6 +100,8 @@ class MailingListView(ListView):
             return MailingList.objects.all()
         return MailingList.objects.filter(owner=self.request.user)
 
+
+@method_decorator(cache_page(60*5), name='dispatch')
 class MailingDetailView(DetailView):
     model = MailingList
     template_name = "newsletter/mailing_detail.html"
@@ -191,12 +199,11 @@ class StatisticView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         stats = Statistic.get_statistic(self.request.user)
-
-        # Просто передаем всю статистику в контекст
         context.update(stats)
         return context
 
 
+@method_decorator(cache_page(60*5), name='dispatch')
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'newsletter/message_list.html'

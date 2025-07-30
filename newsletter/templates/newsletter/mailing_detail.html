@@ -13,9 +13,9 @@
         <a href="{% url 'newsletter:recipient_detail' recipient_detail.pk %}" class="list-group-item list-group-item-action">{{ recipient_detail }}</a>
         {% endfor %}
     </div>
-</section>
-<form method="post" action="{% url 'newsletter:send_mail' mailing_list.pk %}">
+    <form method="post" action="{% url 'newsletter:send_mail' mailing_list.pk %}">
     {% csrf_token %}
     <button type="submit" class="btn btn-outline-primary">Отправить</button>
-</form>
+    </form>
+</section>
 {% endblock %}

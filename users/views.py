@@ -1,13 +1,17 @@
 import secrets
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
     PasswordResetCompleteView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import ListView
 
 from config.settings import EMAIL_HOST_USER
 from users.forms import UserRegisterForm
@@ -74,3 +78,44 @@ class CustomPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmVi
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'users/password_reset_complete.html'
+
+
+class UserListView(UserPassesTestMixin, ListView):
+    model = get_user_model()
+    template_name = "users/users_list.html"
+    context_object_name = "users"
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied
+
+        user_id = request.POST.get("user_id")
+        action = request.POST.get("action")
+
+        if user_id and action in ["block", "unblock"]:
+            user = get_user_model().objects.get(id=user_id)
+            user.is_active = (action == "unblock")
+            user.save()
+
+        return redirect("users:users_list")
+
+
+class UserUpdateView(LoginRequiredMixin, UpdateView):
+    model = User
+    fields = ['first_name', 'last_name', 'phone_number', 'city', 'avatar']
+    template_name = 'users/user_form.html'
+    success_url = reverse_lazy('newsletter:home_page')
+
+    def get_object(self):
+        return self.request.user
+
+class UserDeleteView(LoginRequiredMixin, DeleteView):
+    model = User
+    template_name = 'users/user_confirm_delete.html'
+    success_url = reverse_lazy('users:user_register')
+
+    def get_object(self):
+        return self.request.user

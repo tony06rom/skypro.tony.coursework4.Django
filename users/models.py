@@ -44,3 +44,20 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+
+
+class Profile(models.Model):
+    USER = "user"
+    MANAGER = "manager"
+    ROLE_CHOICES = [(USER, "Пользователь"), (MANAGER, "Менеджер")]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=USER, verbose_name="Роль")
+    is_blocked = models.BooleanField(default=False, verbose_name="Заблокирован")
+
+    class Meta:
+        verbose_name = "Профиль"
+        verbose_name_plural = "Профили"
+
+    def __str__(self):
+        return f"{self.user} ({self.role})"

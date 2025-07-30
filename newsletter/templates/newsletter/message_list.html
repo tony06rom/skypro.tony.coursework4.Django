@@ -1,0 +1,30 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}Создать сообщение{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Мои сообщения</h2>
+    <a href="{% url 'newsletter:message_create' %}" class="btn btn-primary mb-3">Создать сообщение</a>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Тема</th>
+                <th>Текст</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for message in messages %}
+            <tr>
+                <td>{{ message.title }}</td>
+                <td>{{ message.body|truncatechars:50 }}</td>
+                <td>
+                    <a href="{% url 'newsletter:message_edit' message.pk %}" class="btn btn-sm btn-info">Редактировать</a>
+                    <a href="{% url 'newsletter:message_delete' message.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

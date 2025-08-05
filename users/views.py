@@ -2,18 +2,20 @@ import secrets
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
     PasswordResetCompleteView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView
 
 from config.settings import EMAIL_HOST_USER
+from newsletter.mixins import ManagerRequiredMixin
 from users.forms import UserRegisterForm
 from users.models import User
 
@@ -80,10 +82,11 @@ class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'users/password_reset_complete.html'
 
 
-class UserListView(UserPassesTestMixin, ListView):
+class UserListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, ListView):
     model = get_user_model()
     template_name = "users/users_list.html"
     context_object_name = "users"
+    permission_required = ("users.can_view_user_list",)
 
     def test_func(self):
         return self.request.user.is_staff
@@ -103,7 +106,7 @@ class UserListView(UserPassesTestMixin, ListView):
         return redirect("users:users_list")
 
 
-class UserUpdateView(LoginRequiredMixin, UpdateView):
+class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = User
     fields = ['first_name', 'last_name', 'phone_number', 'city', 'avatar']
     template_name = 'users/user_form.html'
@@ -112,10 +115,18 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self):
         return self.request.user
 
+    def has_permission(self):
+        if self.request.user.is_superuser or self.request.user == self.get_object():
+            return True
+        return HttpResponseForbidden(
+            "У вас нет прав для изменения данных этого пользователя"
+        )
+
 class UserDeleteView(LoginRequiredMixin, DeleteView):
     model = User
     template_name = 'users/user_confirm_delete.html'
     success_url = reverse_lazy('users:user_register')
+
 
     def get_object(self):
         return self.request.user

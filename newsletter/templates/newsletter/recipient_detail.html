@@ -9,7 +9,7 @@
     <p class="lead text-body-secondary">ФИО: {{ recipient_detail.full_name }}</p>
     <p class="lead text-body-secondary">Коммент: {{ recipient_detail.comment }}</p>
 </section>
-{% if not request.user.is_staff and recipient.owner == request.user %}
+{% if recipient.owner == request.user %}
 <div class="mt-3">
     <a href="{% url 'newsletter:recipient_delete' recipient.pk %}"
        class="btn btn-danger"

@@ -10,7 +10,9 @@
             <tr>
                 <th>Тема</th>
                 <th>Текст</th>
+                {% if message.owner == request.user %}
                 <th>Действия</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -18,10 +20,12 @@
             <tr>
                 <td>{{ message.title }}</td>
                 <td>{{ message.body|truncatechars:50 }}</td>
-                <td>
-                    <a href="{% url 'newsletter:message_edit' message.pk %}" class="btn btn-sm btn-info">Редактировать</a>
-                    <a href="{% url 'newsletter:message_delete' message.pk %}" class="btn btn-sm btn-danger">Удалить</a>
-                </td>
+                {% if message.owner == request.user %}
+                    <td>
+                        <a href="{% url 'newsletter:message_edit' message.pk %}" class="btn btn-sm btn-info">Редактировать</a>
+                        <a href="{% url 'newsletter:message_delete' message.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                    </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

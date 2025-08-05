@@ -13,10 +13,8 @@
                     <li><a href="{% url 'users:users_list' %}" class="text-white">Пользователи</a></li>
                     {% endif %}
                     {% if user.is_authenticated %}
-                    {% if not user.is_staff %}
-                    <li><a href="{% url 'newsletter:message_list' %}" class="text-white">Мои сообщения</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'users:user_edit' %}" class="text-white">Мой профиль</a></li>
+                    <li><a href="{% url 'newsletter:message_list' %}" class="text-white">Сообщения</a></li>
+                    <li><a href="{% url 'users:user_edit' %}" class="text-white">Профиль: {{ user }}</a></li>
                     <li style="margin: 0px 20;">
                         <form action="{% url 'users:user_logout' %}" method="post" style="display: inline;">
                             {% csrf_token %}

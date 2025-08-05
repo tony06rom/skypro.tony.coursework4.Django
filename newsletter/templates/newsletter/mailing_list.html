@@ -32,7 +32,7 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-primary">Запустить</button>
                 </form>
-                {% if request.user.is_staff or mailing.owner == request.user %}
+                {% if mailing.owner == request.user or request.user.is_staff %}
                 <form method="post" action="{% url 'newsletter:mailing_toggle' mailing.pk %}" class="ms-2">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm {% if mailing.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
@@ -40,7 +40,7 @@
                     </button>
                 </form>
                 {% endif %}
-                {% if not request.user.is_staff %}
+                {% if mailing.owner == request.user %}
                 <form method="post" action="{% url 'newsletter:mailing_delete' mailing.pk %}"
                           class="ms-2" onsubmit="return confirm('Удалить рассылку?');">
                         {% csrf_token %}
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        {% if not request.user.is_staff and mailing.owner == request.user %}
+        {% if mailing.owner == request.user %}
         <div class="d-flex justify-content-end gap-2">
             <a href="{% url 'newsletter:mailing_edit' mailing.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
             <a href="{% url 'newsletter:message_edit' mailing.message.pk %}" class="btn btn-sm btn-info">Редактировать сообщение</a>

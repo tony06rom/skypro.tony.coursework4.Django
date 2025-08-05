@@ -44,6 +44,10 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        permissions = [
+            ("can_view_user_list", "Can view user list"),
+            ("can_ban", "Can ban user"),
+        ]
 
 
 class Profile(models.Model):
@@ -54,6 +58,10 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=USER, verbose_name="Роль")
     is_blocked = models.BooleanField(default=False, verbose_name="Заблокирован")
+    permissions = [
+        ("can_view_user_list", "Can view user list"),
+        ("can_ban", "Can ban user"),
+    ]
 
     class Meta:
         verbose_name = "Профиль"

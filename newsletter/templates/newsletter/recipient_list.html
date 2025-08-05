@@ -25,7 +25,7 @@
                         <a href="{% url 'newsletter:recipient_detail' recipient.pk %}"
                            class="btn btn-sm btn-outline-info">Подробнее</a>
 
-                        {% if not request.user.is_staff and recipient.owner == request.user %}
+                        {% if recipient.owner == request.user %}
                         <a href="{% url 'newsletter:recipient_edit' recipient.pk %}"
                            class="btn btn-sm btn-outline-warning ms-2">
                            Редактировать

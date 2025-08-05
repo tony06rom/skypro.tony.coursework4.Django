@@ -19,6 +19,7 @@ class Recipient(models.Model):
         verbose_name = "Получатель"
         verbose_name_plural = "Получатели"
         ordering = ["email"]
+        permissions = [("can_view_recipient", "Can view recipient")]
 
 
 class Message(models.Model):
@@ -33,6 +34,7 @@ class Message(models.Model):
         verbose_name = "Сообщение"
         verbose_name_plural = "Сообщения"
         ordering = ["title"]
+        permissions = [("can_view_message", "Can view message")]
 
 
 class MailingList(models.Model):
@@ -56,6 +58,7 @@ class MailingList(models.Model):
         verbose_name = "Рассылка"
         verbose_name_plural = "Рассылки"
         ordering = ["status"]
+        permissions = [("can_view_mailing_list", "Can view mailing list"),("can_turn_off", "Can turn off mailing list")]
 
     def send(self):
         self.status = self.STARTED
@@ -96,3 +99,4 @@ class SendAttempt(models.Model):
         verbose_name = "Состояние рассылки"
         verbose_name_plural = "Состояния рассылок"
         ordering = ["status", "date"]
+        permissions = [("can_view_attempts", "Can view sent attempts")]

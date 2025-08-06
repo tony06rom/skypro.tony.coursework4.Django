@@ -1,5 +1,5 @@
-from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.core.exceptions import PermissionDenied
 
 from users.models import Profile
 
@@ -11,6 +11,7 @@ class OwnerRequiredMixin(UserPassesTestMixin):
 
     def handle_no_permission(self):
         raise PermissionDenied("У вас нет прав для выполнения этого действия.")
+
 
 class ManagerRequiredMixin(UserPassesTestMixin):
     def test_func(self):

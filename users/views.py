@@ -2,20 +2,19 @@ import secrets
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, \
-    PasswordResetCompleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.views import (PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView,
+                                       PasswordResetView)
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from config.settings import EMAIL_HOST_USER
-from newsletter.mixins import ManagerRequiredMixin
 from users.forms import UserRegisterForm
 from users.models import User
 
@@ -54,32 +53,32 @@ def email_verification(request, token):
 
 
 class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
-    template_name = 'users/password_reset.html'
-    email_template_name = 'users/password_reset_email.html'
+    template_name = "users/password_reset.html"
+    email_template_name = "users/password_reset_email.html"
     form_class = PasswordResetForm
-    success_url = reverse_lazy('users:password_reset_done')
+    success_url = reverse_lazy("users:password_reset_done")
     success_message = "Письмо для сброса пароля отправлено на ваш email"
 
     def form_valid(self, form):
-        if not User.objects.filter(email=form.cleaned_data['email']).exists():
-            form.add_error('email', 'Пользователя с таким email не существует в системе')
+        if not User.objects.filter(email=form.cleaned_data["email"]).exists():
+            form.add_error("email", "Пользователя с таким email не существует в системе")
             return self.form_invalid(form)
         return super().form_valid(form)
 
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'users/password_reset_done.html'
+    template_name = "users/password_reset_done.html"
 
 
 class CustomPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
-    template_name = 'users/password_reset_confirm.html'
+    template_name = "users/password_reset_confirm.html"
     form_class = SetPasswordForm
-    success_url = reverse_lazy('users:password_reset_complete')
+    success_url = reverse_lazy("users:password_reset_complete")
     success_message = "Пароль успешно изменен. Авторизуйтесь с новым паролем."
 
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
-    template_name = 'users/password_reset_complete.html'
+    template_name = "users/password_reset_complete.html"
 
 
 class UserListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, ListView):
@@ -100,7 +99,7 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMi
 
         if user_id and action in ["block", "unblock"]:
             user = get_user_model().objects.get(id=user_id)
-            user.is_active = (action == "unblock")
+            user.is_active = action == "unblock"
             user.save()
 
         return redirect("users:users_list")
@@ -108,9 +107,9 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMi
 
 class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = User
-    fields = ['first_name', 'last_name', 'phone_number', 'city', 'avatar']
-    template_name = 'users/user_form.html'
-    success_url = reverse_lazy('newsletter:home_page')
+    fields = ["first_name", "last_name", "phone_number", "city", "avatar"]
+    template_name = "users/user_form.html"
+    success_url = reverse_lazy("newsletter:home_page")
 
     def get_object(self):
         return self.request.user
@@ -118,15 +117,13 @@ class UserUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     def has_permission(self):
         if self.request.user.is_superuser or self.request.user == self.get_object():
             return True
-        return HttpResponseForbidden(
-            "У вас нет прав для изменения данных этого пользователя"
-        )
+        return HttpResponseForbidden("У вас нет прав для изменения данных этого пользователя")
+
 
 class UserDeleteView(LoginRequiredMixin, DeleteView):
     model = User
-    template_name = 'users/user_confirm_delete.html'
-    success_url = reverse_lazy('users:user_register')
-
+    template_name = "users/user_confirm_delete.html"
+    success_url = reverse_lazy("users:user_register")
 
     def get_object(self):
         return self.request.user

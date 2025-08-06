@@ -1,17 +1,18 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import cache_page
-from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
-from newsletter.forms import RecipientForm, MailingListForm
-from newsletter.models import Recipient, MailingList, SendAttempt, Message
+from newsletter.forms import MailingListForm, RecipientForm
+from newsletter.models import MailingList, Message, Recipient
 from newsletter.services import Statistic
+from django.core.cache import cache
 
 
 class HomeView(ListView):
@@ -22,7 +23,11 @@ class HomeView(ListView):
         active_mailing_lists = MailingList.objects.filter(status=MailingList.STARTED)
         mailing_lists = MailingList.objects.all()
         unique_recipients = Recipient.objects.all()
-        context = {"mailing_list": mailing_lists.count(),"active_mailing_list": active_mailing_lists.count(),"unique_recipient": unique_recipients.count()}
+        context = {
+            "mailing_list": mailing_lists.count(),
+            "active_mailing_list": active_mailing_lists.count(),
+            "unique_recipient": unique_recipients.count(),
+        }
         return context
 
 
@@ -32,10 +37,14 @@ class RecipientListView(LoginRequiredMixin, ListView):
     context_object_name = "recipient_list"
 
     def get_queryset(self):
-        if self.request.user.has_perm("newsletter.can_view_recipient"):
-            queryset = Recipient.objects.all()
-        else:
-            queryset = Recipient.objects.filter(email=self.request.user)
+        cache_key = f'recipient:{self.request.user.pk}'
+        queryset = cache.get(cache_key)
+        if not queryset:
+            if self.request.user.has_perm("newsletter.can_view_recipient"):
+                queryset = Recipient.objects.all()
+            else:
+                queryset = Recipient.objects.filter(owner=self.request.user)
+            cache.set(cache_key, queryset, 60 * 5)
         return queryset
 
 
@@ -64,16 +73,14 @@ class RecipientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
 
     def has_permission(self):
         if self.request.user.is_staff and not self.request.user.is_superuser:
-            return HttpResponseForbidden(
-                "У вас нет прав для добавления новых получателей рассылок"
-            )
+            return HttpResponseForbidden("У вас нет прав для добавления новых получателей рассылок")
         return True
 
 
 class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
-    template_name = 'newsletter/recipient_delete.html'
-    success_url = reverse_lazy('newsletter:recipient_list')
+    template_name = "newsletter/recipient_delete.html"
+    success_url = reverse_lazy("newsletter:recipient_list")
 
     def has_permission(self):
         instance = self.get_object()
@@ -82,23 +89,21 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
         return HttpResponseForbidden("У вас нет прав для удаления этого получателя")
 
     def delete(self, request, *args, **kwargs):
-        messages.success(request, 'Получатель успешно удален')
+        messages.success(request, "Получатель успешно удален")
         return super().delete(request, *args, **kwargs)
 
 
 class RecipientUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Recipient
-    fields = ['full_name', 'email', 'comment']
-    template_name = 'newsletter/recipient_form.html'
-    success_url = reverse_lazy('newsletter:recipient_list')
+    fields = ["full_name", "email", "comment"]
+    template_name = "newsletter/recipient_form.html"
+    success_url = reverse_lazy("newsletter:recipient_list")
 
     def has_permission(self):
         instance = self.get_object()
         if instance.owner == self.request.user:
             return True
-        return HttpResponseForbidden(
-            "У вас нет прав для редактирования данных этого получателя"
-        )
+        return HttpResponseForbidden("У вас нет прав для редактирования данных этого получателя")
 
 
 class MailingListView(LoginRequiredMixin, ListView):
@@ -112,6 +117,17 @@ class MailingListView(LoginRequiredMixin, ListView):
         else:
             queryset = MailingList.objects.filter(owner=self.request.user)
         return queryset
+
+    # def get_queryset(self):
+    #     cache_key = f'mailing_list{self.request.user.pk}'
+    #     queryset = cache.get(cache_key)
+    #     if not queryset:
+    #         if self.request.user.has_perm("newsletter.can_view_mailing_list"):
+    #             queryset = MailingList.objects.all()
+    #         else:
+    #             queryset = MailingList.objects.filter(owner=self.request.user)
+    #         cache.set(cache_key, queryset, 60 * 5)
+    #     return queryset
 
 
 class MailingDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -135,7 +151,7 @@ class MailingDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
 
 class MailingListCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = MailingList
-    form_class =MailingListForm
+    form_class = MailingListForm
     template_name = "newsletter/mailing_form.html"
     success_url = reverse_lazy("newsletter:mailing_list")
 
@@ -145,8 +161,8 @@ class MailingListCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
-        form.fields['recipients'].queryset = Recipient.objects.filter(owner=self.request.user)
+        form.fields["message"].queryset = Message.objects.filter(owner=self.request.user)
+        form.fields["recipients"].queryset = Recipient.objects.filter(owner=self.request.user)
         return form
 
     def has_permission(self):
@@ -159,8 +175,8 @@ class MailingListCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
 class MailingListUpdateView(LoginRequiredMixin, UpdateView):
     model = MailingList
     form_class = MailingListForm
-    template_name = 'newsletter/mailing_edit.html'
-    success_url = reverse_lazy('newsletter:mailing_list')
+    template_name = "newsletter/mailing_edit.html"
+    success_url = reverse_lazy("newsletter:mailing_list")
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -170,8 +186,8 @@ class MailingListUpdateView(LoginRequiredMixin, UpdateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         if not self.request.user.is_staff:
-            form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
-            form.fields['recipients'].queryset = Recipient.objects.filter(owner=self.request.user)
+            form.fields["message"].queryset = Message.objects.filter(owner=self.request.user)
+            form.fields["recipients"].queryset = Recipient.objects.filter(owner=self.request.user)
         return form
 
     def has_permission(self):
@@ -184,7 +200,7 @@ class MailingListUpdateView(LoginRequiredMixin, UpdateView):
 class MailingListToggleView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
-        mailing = get_object_or_404(MailingList, pk=kwargs['pk'])
+        mailing = get_object_or_404(MailingList, pk=kwargs["pk"])
         if not (request.user.has_perm("newsletter.can_turn_off") or mailing.owner.id == request.user.id):
             raise PermissionDenied("Вы не можете управлять этой рассылкой")
         mailing.is_active = not mailing.is_active
@@ -193,13 +209,13 @@ class MailingListToggleView(LoginRequiredMixin, View):
             mailing.status = MailingList.STARTED
             mailing.save()
         messages.success(request, f'Рассылка {"включена" if mailing.is_active else "отключена"}')
-        return redirect('newsletter:mailing_list')
+        return redirect("newsletter:mailing_list")
 
 
 class MailingListDeleteView(LoginRequiredMixin, DeleteView):
     model = MailingList
-    template_name = 'newsletter/mailing_confirm_delete.html'
-    success_url = reverse_lazy('newsletter:mailing_list')
+    template_name = "newsletter/mailing_confirm_delete.html"
+    success_url = reverse_lazy("newsletter:mailing_list")
 
     def has_permission(self):
         instance = self.get_object()
@@ -221,7 +237,7 @@ class MailSend(LoginRequiredMixin, View):
 
 
 class StatisticView(LoginRequiredMixin, TemplateView):
-    template_name = 'newsletter/statistic.html'
+    template_name = "newsletter/statistic.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -232,22 +248,26 @@ class StatisticView(LoginRequiredMixin, TemplateView):
 
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
-    template_name = 'newsletter/message_list.html'
-    context_object_name = 'messages'
+    template_name = "newsletter/message_list.html"
+    context_object_name = "messages"
 
     def get_queryset(self):
-        if self.request.user.has_perm("newsletter.can_view_message"):
-            queryset = Message.objects.all()
-        else:
-            queryset = Message.objects.filter(owner=self.request.user)
+        cache_key = f'messages_{self.request.user.pk}'
+        queryset = cache.get(cache_key)
+        if not queryset:
+            if self.request.user.has_perm("newsletter.can_view_message"):
+                queryset = Message.objects.all()
+            else:
+                queryset = Message.objects.filter(owner=self.request.user)
+            cache.set(cache_key, queryset, 60 * 5)
         return queryset
 
 
 class MessageCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Message
-    fields = ['title', 'body']
-    template_name = 'newsletter/message_form.html'
-    success_url = reverse_lazy('newsletter:mailing_create')
+    fields = ["title", "body"]
+    template_name = "newsletter/message_form.html"
+    success_url = reverse_lazy("newsletter:mailing_create")
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -261,9 +281,9 @@ class MessageCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
 
 class MessageUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Message
-    fields = ['title', 'body']
-    template_name = 'newsletter/message_form.html'
-    success_url = reverse_lazy('newsletter:message_list')
+    fields = ["title", "body"]
+    template_name = "newsletter/message_form.html"
+    success_url = reverse_lazy("newsletter:message_list")
 
     def get_queryset(self):
         return Message.objects.filter(owner=self.request.user)
@@ -277,8 +297,8 @@ class MessageUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView)
 
 class MessageDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Message
-    template_name = 'newsletter/message_delete.html'
-    success_url = reverse_lazy('newsletter:message_list')
+    template_name = "newsletter/message_delete.html"
+    success_url = reverse_lazy("newsletter:message_list")
 
     def has_permission(self):
         instance = self.get_object()

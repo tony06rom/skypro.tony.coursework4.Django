@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group, Permission
 from django.core.management import BaseCommand
+
 from users.models import User
 
 
@@ -27,7 +28,6 @@ class Command(BaseCommand):
             turn_off_permission,
         )
         manager.save()
-
 
         pm = User.objects.get(email="manager@man.com")
         pm.groups.add(manager)

@@ -1,14 +1,8 @@
 import os
 from pathlib import Path
 
-from django.conf.global_settings import (
-    AUTH_USER_MODEL,
-    LOGIN_REDIRECT_URL,
-    LOGOUT_REDIRECT_URL,
-    MEDIA_ROOT,
-    MEDIA_URL,
-    STATICFILES_DIRS,
-)
+from django.conf.global_settings import (AUTH_USER_MODEL, LOGIN_REDIRECT_URL, LOGOUT_REDIRECT_URL, MEDIA_ROOT,
+                                         MEDIA_URL, STATICFILES_DIRS)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -149,8 +143,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CACHE_ENABLED = True
 if CACHE_ENABLED:
     CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': 'redis://127.0.0.1:6379/1',
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
         }
     }

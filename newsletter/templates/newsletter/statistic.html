@@ -1,0 +1,100 @@
+{% extends 'newsletter/base.html' %}
+{% load math_tags %}
+{% block content %}
+<div class="container">
+    <h2>Статистика рассылок</h2>
+
+    <!-- Общая статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Всего рассылок</h5>
+                    <p class="display-4">{{ total_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Активные</h5>
+                    <p class="display-4">{{ active_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Завершенные</h5>
+                    <p class="display-4">{{ completed_mailings }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика попыток -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Попытки отправки</h5>
+                    <p class="display-4">{{ total_attempts }}</p>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-success">Успешно: {{ success_attempts }}</span>
+                        <span class="text-danger">Неудачно: {{ failed_attempts }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Процент успешных</h5>
+                    <p class="display-4">{{ success_rate|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика по сообщениям -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Статистика по сообщениям</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Тема сообщения</th>
+                        <th>Всего отправок</th>
+                        <th>Успешно</th>
+                        <th>Неудачно</th>
+                        <th>Процент успеха</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in messages_stats %}
+                    <tr>
+                        <td>{{ stat.message__title }}</td>
+                        <td>{{ stat.total }}</td>
+                        <td class="text-success">{{ stat.success }}</td>
+                        <td class="text-danger">{{ stat.failed }}</td>
+                        <td>
+                            {% if stat.total %}
+                                {{ stat.success|div:stat.total|mul:100|floatformat:2 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">Нет данных о рассылках</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

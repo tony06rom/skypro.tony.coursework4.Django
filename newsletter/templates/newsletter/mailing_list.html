@@ -1,0 +1,69 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}Список рассылок{% endblock %}
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="col-lg-6 col-md-8 mx-auto"><h1 class="fw-light">Доступные рассылки</h1></div>
+</section>
+
+<section class="py-5 text-center container">
+  <div class="list-group">
+    {% for mailing in mailing_list %}
+    <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="text-start">
+                <h5>Сообщение: {{ mailing.message.title }}</h5>
+                <p class="mb-1">
+                    Статус: <span class="badge bg-{% if mailing.status == 'started' %}success{% else %}warning{% endif %}">
+                        {{ mailing.get_status_display }}
+                    </span>
+                    <span class="badge bg-{% if mailing.is_active %}success{% else %}danger{% endif %}">
+                        {% if mailing.is_active %}Активна{% else %}Отключена{% endif %}
+                    </span>
+                </p>
+                <small class="text-muted">Автор: {{ mailing.owner.email }}</small>
+            </div>
+
+
+            <div class="btn-group">
+                <form action="{% url 'newsletter:mailing_detail' mailing.pk %}">
+                    <button type="submit" class="btn btn-sm btn-outline-info">Подробнее</button>
+                </form>
+                <form method="post" action="{% url 'newsletter:send_mail' mailing.pk %}" class="ms-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Запустить</button>
+                </form>
+                {% if mailing.owner == request.user or request.user.is_staff %}
+                <form method="post" action="{% url 'newsletter:mailing_toggle' mailing.pk %}" class="ms-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if mailing.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+                        {% if mailing.is_active %}Отключить{% else %}Включить{% endif %}
+                    </button>
+                </form>
+                {% endif %}
+                {% if mailing.owner == request.user %}
+                <form method="post" action="{% url 'newsletter:mailing_delete' mailing.pk %}"
+                          class="ms-2" onsubmit="return confirm('Удалить рассылку?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            Удалить
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if mailing.owner == request.user %}
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'newsletter:mailing_edit' mailing.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+            <a href="{% url 'newsletter:message_edit' mailing.message.pk %}" class="btn btn-sm btn-info">Редактировать сообщение</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not request.user.is_staff %}
+    <a href="{% url 'newsletter:mailing_create' %}" class="btn btn-primary mt-3">Добавить Рассылку</a>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}Форма рассылки{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Редактирование рассылки #{{ object.pk }}</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Сообщение</label>
+            <div class="input-group">
+                {{ form.message }}
+                <a href="{% url 'newsletter:message_edit' object.message.pk %}"
+                   class="btn btn-outline-secondary">
+                   Редактировать сообщение
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Получатели</label>
+            <div class="input-group">
+                {{ form.recipients }}
+                <a href="{% url 'newsletter:recipient_create' %}"
+                   class="btn btn-outline-secondary">
+                   + Добавить
+                </a>
+            </div>
+            <small class="text-muted">Удерживайте Ctrl для выбора нескольких</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Статус</label>
+            {{ form.status }}
+        </div>
+
+        <div class="mb-3 form-check">
+            {{ form.is_active }}
+            <label class="form-check-label">Активна</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a href="{% url 'newsletter:mailing_list' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

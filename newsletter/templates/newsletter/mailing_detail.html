@@ -1,0 +1,21 @@
+{% extends 'newsletter/base.html' %}
+{% block title %}{{ unique_recipient }}{% endblock %}
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="col-lg-6 col-md-8 mx-auto"><h1 class="fw-light">Подробности о рассылке</h1></div>
+</section>
+<section class="py-5 text-center container">
+    <p class="lead text-body-secondary">Имя рассылки: {{ mailing_list.message }}</p>
+    <p class="lead text-body-secondary">Сообщение: {{ mailing_list.message.body}}</p>
+    <p class="lead text-body-secondary">Получатели: {{ unique_recipient }}</p>
+    <div class="list-group">
+        {% for recipient_detail in recipient_list %}
+        <a href="{% url 'newsletter:recipient_detail' recipient_detail.pk %}" class="list-group-item list-group-item-action">{{ recipient_detail }}</a>
+        {% endfor %}
+    </div>
+    <form method="post" action="{% url 'newsletter:send_mail' mailing_list.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-primary">Отправить</button>
+    </form>
+</section>
+{% endblock %}
